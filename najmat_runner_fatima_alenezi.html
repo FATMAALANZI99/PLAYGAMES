@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>عدّاءة النجوم | Fatima Alenezi</title>
+<style>
+:root{--ink:#202744;--purple:#6554d9;--mint:#dff6ed;--bg:#f6f7fc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:var(--ink);display:grid;place-items:center;min-height:100vh;padding:18px}
+.wrap{width:min(960px,100%)}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}h1{font-size:clamp(1.4rem,4vw,2.2rem);margin:0;color:var(--purple)}.tag{color:#438f87;font-weight:bold}
+.panel{background:white;border:1px solid #e0e3ef;border-radius:18px;padding:14px;box-shadow:0 10px 30px #28305212}
+canvas{display:block;width:100%;height:auto;border-radius:12px;background:#e6f8ff;touch-action:manipulation}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}.stats{font-weight:bold;display:flex;gap:16px;flex-wrap:wrap}
+button{border:0;border-radius:12px;padding:11px 17px;background:var(--purple);color:white;font-weight:bold;font-size:1rem;cursor:pointer}button.secondary{background:#e9e6ff;color:#4e40bd}.help{color:#667087;line-height:1.8;font-size:.95rem}
+</style></head><body><main class="wrap">
+<header><div><div class="tag">مشروع برمجي تجريبي</div><h1>⭐ عدّاءة النجوم</h1></div><div class="tag">HTML • CSS • JavaScript</div></header>
+<section class="panel"><canvas id="game" width="900" height="430" aria-label="لعبة عداءة النجوم"></canvas>
+<div class="row"><div class="stats"><span>النقاط: <b id="score">0</b></span><span>أفضل نتيجة: <b id="best">0</b></span><span id="status">جاهزة للعب</span></div><div><button id="start">ابدئي اللعب</button> <button class="secondary" id="restart">إعادة اللعب</button></div></div>
+<p class="help">طريقة اللعب: اضغطي على مساحة اللعبة أو زر المسافة للقفز، وتجنّبي الصخور واجمعي النجوم. على الهاتف يمكنك لمس مساحة اللعبة للقفز.</p></section>
+</main>
+<script>
+(()=>{const c=document.getElementById('game'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),statusEl=document.getElementById('status');
+let player,obstacles,stars,score,best=+(localStorage.getItem('fatimaRunnerBest')||0),running=false,over=false,frame=0,speed=5;
+bestEl.textContent=best;
+function reset(){player={x:115,y:315,w:42,h:58,vy:0,ground:true};obstacles=[];stars=[];score=0;frame=0;speed=5;over=false;running=true;scoreEl.textContent=0;statusEl.textContent='بالتوفيق!';}
+function jump(){if(!running){reset();return}if(player.ground){player.vy=-14;player.ground=false}}
+function draw(){ctx.clearRect(0,0,900,430);ctx.fillStyle='#e6f8ff';ctx.fillRect(0,0,900,430);
+ctx.fillStyle='#ffe69a';ctx.beginPath();ctx.arc(780,75,39,0,Math.PI*2);ctx.fill();
+for(let i=0;i<3;i++){ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(120+i*250,75+(i%2)*25,43,13,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(120+i*250,65+(i%2)*25,18,0,Math.PI*2);ctx.fill()}
+ctx.fillStyle='#b9e5d7';ctx.beginPath();ctx.moveTo(0,280);ctx.lineTo(140,200);ctx.lineTo(280,280);ctx.lineTo(450,195);ctx.lineTo(620,280);ctx.lineTo(790,215);ctx.lineTo(900,260);ctx.lineTo(900,430);ctx.lineTo(0,430);ctx.fill();
+ctx.fillStyle='#58c8a7';ctx.fillRect(0,365,900,65);ctx.fillStyle='#43b59a';ctx.fillRect(0,355,900,13);
+ctx.fillStyle='#44315f';ctx.fillRect(player.x+5,player.y-8,32,18);ctx.fillStyle='#ffd1a9';ctx.beginPath();ctx.arc(player.x+21,player.y+4,17,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6554d9';ctx.fillRect(player.x,player.y+20,42,32);ctx.fillStyle='#493ba7';ctx.fillRect(player.x+5,player.y+49,12,20);ctx.fillRect(player.x+25,player.y+49,12,20);
+obstacles.forEach(o=>{ctx.fillStyle='#e7786b';ctx.beginPath();ctx.moveTo(o.x,o.y+40);ctx.lineTo(o.x+12,o.y);ctx.lineTo(o.x+35,o.y+8);ctx.lineTo(o.x+45,o.y+40);ctx.fill()});
+stars.forEach(s=>{ctx.fillStyle='#f4b942';ctx.beginPath();for(let i=0;i<10;i++){let r=i%2?8:17,a=-Math.PI/2+i*Math.PI/5;ctx.lineTo(s.x+Math.cos(a)*r,s.y+Math.sin(a)*r)}ctx.closePath();ctx.fill()});
+if(!running){ctx.fillStyle='#202744dd';ctx.fillRect(0,0,900,430);ctx.fillStyle='white';ctx.textAlign='center';ctx.font='bold 34px Tahoma';ctx.fillText(over?'انتهت اللعبة!':'عدّاءة النجوم',450,190);ctx.font='22px Tahoma';ctx.fillText(over?`نتيجتك: ${score} — اضغطي إعادة اللعب`:'اضغطي «ابدئي اللعب» للبدء',450,235)}}
+function tick(){if(running){frame++;player.vy+=.7;player.y+=player.vy;if(player.y>=296){player.y=296;player.vy=0;player.ground=true}
+if(frame%78===0)obstacles.push({x:920,y:315,w:45});if(frame%95===0)stars.push({x:920,y:270-Math.random()*90,r:15});speed=Math.min(9,5+score/180);
+obstacles.forEach(o=>o.x-=speed);stars.forEach(s=>s.x-=speed);obstacles=obstacles.filter(o=>o.x>-60);stars=stars.filter(s=>s.x>-30);
+for(const s of stars){if(!s.got&&Math.abs(s.x-(player.x+21))<27&&Math.abs(s.y-(player.y+25))<35){s.got=true;score+=10;scoreEl.textContent=score}}
+stars=stars.filter(s=>!s.got);
+for(const o of obstacles){if(player.x+35>o.x+5&&player.x+5<o.x+40&&player.y+55>o.y+5){running=false;over=true;statusEl.textContent='انتهت الجولة';if(score>best){best=score;localStorage.setItem('fatimaRunnerBest',best);bestEl.textContent=best}}}
+}draw();requestAnimationFrame(tick)}
+document.getElementById('start').onclick=()=>{if(!running)reset()};document.getElementById('restart').onclick=reset;c.addEventListener('pointerdown',jump);document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
+player={x:115,y:296,w:42,h:58,vy:0,ground:true};obstacles=[];stars=[];score=0;draw();tick();
+})();
+</script></body></html>
